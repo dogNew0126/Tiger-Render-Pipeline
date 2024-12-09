@@ -38,14 +38,14 @@ Shader "Custom RP/lightPass"
             }
 
             sampler2D _GDepth;
-            sampler2D _GTexture0;
-            sampler2D _GTexture1;
-            sampler2D _GTexture2;
-            sampler2D _GTexture3;
+            sampler2D _GT0;
+            sampler2D _GT1;
+            sampler2D _GT2;
+            sampler2D _GT3;
 
             fixed4 frag (v2f i) : SV_Target
             {
-                fixed4 col = tex2D(_GTexture0, i.uv);
+                fixed4 col = tex2D(_GT0, i.uv);
                 return col;
             }
             ENDCG

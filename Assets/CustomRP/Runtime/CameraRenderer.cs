@@ -36,7 +36,7 @@ public partial class CameraRenderer
 
         buffer.SetGlobalTexture("_GDepth", gDepth);
         for (int i = 0; i < 4; i++)
-            buffer.SetGlobalTexture("_GTexture" + i, gBuffers[i]);
+            buffer.SetGlobalTexture("_GT" + i, gBuffers[i]);
     }
 
     public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing)
@@ -123,6 +123,7 @@ public partial class CameraRenderer
         Material mat = new Material(Shader.Find("Custom RP/lightPass"));
         buffer.Blit(gBuffers[0], BuiltinRenderTextureType.CameraTarget, mat);
         ExecuteBuffer();
+        buffer.EndSample("Light Pass");
     }
 
     void ExecuteBuffer()

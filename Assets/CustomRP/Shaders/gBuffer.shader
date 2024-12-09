@@ -2,7 +2,23 @@ Shader "Custom RP/gBuffer"
 {
     Properties
     {
-        _MainTex ("Texture", 2D) = "white" {}
+        _MainTex ("Albedo Map", 2D) = "white" {}
+        [Space(25)]
+
+        _Metallic_global ("Metallic", Range(0, 1)) = 0.5
+        _Roughness_global ("Roughness", Range(0, 1)) = 0.5
+        [Toggle] _Use_Metal_Map ("Use Metal Map", Float) = 1
+        _MetallicGlossMap ("Metallic Map", 2D) = "white" {}
+        [Space(25)]
+
+        _EmissionMap ("Emission Map", 2D) = "black" {}
+        [Space(25)]
+
+        _OcclusionMap ("Occlusion Map", 2D) = "white" {}
+        [Space(25)]
+
+        [Toggle] _Use_Normal_Map ("Use Normal Map", Float) = 1
+        [Normal] _BumpMap ("Normal Map", 2D) = "bump" {}
     }
     SubShader
     {
@@ -33,6 +49,16 @@ Shader "Custom RP/gBuffer"
             sampler2D _MainTex;
             float4 _MainTex_ST;
 
+            sampler2D _MetallicGlossMap;
+            sampler2D _EmissionMap;
+            sampler2D _OcclusionMap;
+            sampler2D _BumpMap;
+
+            float _Use_Metal_Map;
+            float _Use_Normal_Map;
+            float _Metallic_global;
+            float _Roughness_global;
+
             v2f vert (appdata v)
             {
                 v2f o;
@@ -47,15 +73,28 @@ Shader "Custom RP/gBuffer"
                 out float4 GT0 : SV_Target0,
                 out float4 GT1 : SV_Target1,
                 out float4 GT2 : SV_Target2,
-                out float4 GT3 : SV_Target3)
+                out float4 GT3 : SV_Target3
+            )
             {
-                float3 color = tex2D(_MainTex, i.uv).rgb;
+                float4 color = tex2D(_MainTex, i.uv);
+                float3 emission = tex2D(_EmissionMap, i.uv).rgb;
                 float3 normal = i.normal;
+                float metallic = _Metallic_global;
+                float roughness = _Roughness_global;
+                float ao = tex2D(_OcclusionMap, i.uv).g;
 
-                GT0 = float4(color, 1);
-                GT1 = float4(normal*0.5+0.5, 0);
-                GT2 = float4(1,1,0,1);
-                GT3 = float4(0,0,1,1);
+                if(_Use_Metal_Map)
+                {
+                    float4 metal = tex2D(_MetallicGlossMap, i.uv);
+                    metallic = metal.r;
+                    roughness = 1.0 - metal.a;
+                }
+                //if(_Use_Normal_Map) normal = UnpackNormal(tex2D(_BumpMap, i.uv));
+
+                GT0 = color;
+                GT1 = float4(normal, 0);
+                GT2 = float4(0, 0, roughness,metallic);
+                GT3 = float4(emission, ao);
             }
             ENDCG
         }
