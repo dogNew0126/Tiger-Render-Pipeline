@@ -53,11 +53,16 @@ public partial class CameraRenderer
         }
 
         Setup();
+        SetupMatrix();
         DrawVisibleGeometry(useDynamicBatching, useGPUInstancing);
         DrawUnsupportedShaders();
-        DrawGizmos();
-        LightPass(context);
         // submit the queued work for execution
+        Submit();
+
+        buffer.BeginSample("Skybox");
+        context.DrawSkybox(camera);
+        DrawGizmos();
+        buffer.EndSample("Skybox");
         Submit();
     }
 
@@ -87,15 +92,16 @@ public partial class CameraRenderer
         context.DrawRenderers(
             cullingResults, ref drawingSettings, ref filteringSettings
         );
-        context.DrawSkybox(camera);
 
-        sortingSettings.criteria = SortingCriteria.CommonTransparent;
-        drawingSettings.sortingSettings = sortingSettings;
-        filteringSettings.renderQueueRange = RenderQueueRange.transparent;
+        LightPass();
 
-        context.DrawRenderers(
-            cullingResults, ref drawingSettings, ref filteringSettings
-        );
+        // sortingSettings.criteria = SortingCriteria.CommonTransparent;
+        // drawingSettings.sortingSettings = sortingSettings;
+        // filteringSettings.renderQueueRange = RenderQueueRange.transparent;
+
+        // context.DrawRenderers(
+        //     cullingResults, ref drawingSettings, ref filteringSettings
+        // );
     }
 
     void Setup()
@@ -117,12 +123,12 @@ public partial class CameraRenderer
         context.Submit();
     }
 
-    void LightPass(ScriptableRenderContext context)
+    void LightPass()
     {
         buffer.BeginSample("Light Pass");
         Material mat = new Material(Shader.Find("Custom RP/lightPass"));
         buffer.Blit(gBuffers[0], BuiltinRenderTextureType.CameraTarget, mat);
-        ExecuteBuffer();
+
         buffer.EndSample("Light Pass");
     }
 
@@ -130,5 +136,15 @@ public partial class CameraRenderer
     {
         context.ExecuteCommandBuffer(buffer);
         buffer.Clear();
+    }
+
+    void SetupMatrix()
+    {
+        Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
+        Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
+        Matrix4x4 vpMatrix = projMatrix * viewMatrix;
+        Matrix4x4 vpMatrixInv = vpMatrix.inverse;
+        buffer.SetGlobalMatrix("_vpMatrix", vpMatrix);
+        buffer.SetGlobalMatrix("_vpMatrixInv", vpMatrixInv);
     }
 }

@@ -15,11 +15,11 @@ public partial class CameraRenderer
 #if UNITY_EDITOR
 
     static ShaderTagId[] legacyShaderTagIds = {
-        new ShaderTagId("Always"),
-        new ShaderTagId("ForwardBase"),
-        new ShaderTagId("PrepassBase"),
-        new ShaderTagId("Vertex"),
-        new ShaderTagId("VertexLMRGBM"),
+        // new ShaderTagId("Always"),
+        // new ShaderTagId("ForwardBase"),
+        // new ShaderTagId("PrepassBase"),
+        // new ShaderTagId("Vertex"),
+        // new ShaderTagId("VertexLMRGBM"),
         new ShaderTagId("VertexLM")
     };
 
