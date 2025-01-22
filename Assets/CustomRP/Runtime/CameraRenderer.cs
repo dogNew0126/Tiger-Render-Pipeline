@@ -23,7 +23,7 @@ public partial class CameraRenderer
     RenderTexture[] gBuffers = new RenderTexture[4];                    // color attachments 
     RenderTargetIdentifier[] gBufferID = new RenderTargetIdentifier[4]; // tex ID 
 
-    public CameraRenderer()
+    public CameraRenderer(Cubemap diffuseIBL, Cubemap specularIBL, Texture brdfLut)
     {
         gDepth = new RenderTexture(Screen.width, Screen.height, 24, RenderTextureFormat.Depth, RenderTextureReadWrite.Linear);
         gBuffers[0] = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
@@ -37,6 +37,11 @@ public partial class CameraRenderer
         buffer.SetGlobalTexture("_GDepth", gDepth);
         for (int i = 0; i < 4; i++)
             buffer.SetGlobalTexture("_GT" + i, gBuffers[i]);
+
+        buffer.SetGlobalTexture("_diffuseIBL", diffuseIBL);
+        buffer.SetGlobalTexture("_specularIBL", specularIBL);
+        buffer.SetGlobalTexture("_brdfLut", brdfLut);
+
     }
 
     public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing)

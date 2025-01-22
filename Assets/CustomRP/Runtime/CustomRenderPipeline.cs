@@ -4,15 +4,16 @@ using System.Collections.Generic;
 
 public class CustomRenderPipeline : RenderPipeline
 {
-    CameraRenderer renderer = new CameraRenderer();
+    public CameraRenderer renderer;
 
     bool useDynamicBatching, useGPUInstancing;
 
-    public CustomRenderPipeline(bool useDynamicBatching, bool useGPUInstancing, bool useSRPBatcher)
+    public CustomRenderPipeline(bool useDynamicBatching, bool useGPUInstancing, bool useSRPBatcher, Cubemap diffuseIBL, Cubemap specularIBL, Texture brdfLut)
     {
         this.useDynamicBatching = useDynamicBatching;
         this.useGPUInstancing = useGPUInstancing;
         GraphicsSettings.useScriptableRenderPipelineBatching = useSRPBatcher;
+        renderer = new CameraRenderer(diffuseIBL, specularIBL, brdfLut);
     }
     protected override void Render(ScriptableRenderContext context, Camera[] cameras)
     {
