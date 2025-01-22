@@ -10,15 +10,14 @@ public class CustomRenderPipelineAsset : RenderPipelineAsset
     public Cubemap specularIBL;
     public Texture brdfLut;
 
-    [SerializeField]
-    bool useDynamicBatching = true, useGPUInstancing = true, useSRPBatcher = true;
-    protected override RenderPipeline CreatePipeline()
-    {
-        CustomRenderPipeline rp = new CustomRenderPipeline(
-            useDynamicBatching, useGPUInstancing, useSRPBatcher, diffuseIBL, specularIBL, brdfLut
-        );
+    protected override RenderPipeline CreatePipeline() {
+      CustomRenderPipeline rp = new CustomRenderPipeline();
+      
+      rp.diffuseIBL = diffuseIBL;
+      rp.specularIBL = specularIBL;
+      rp.brdfLut = brdfLut;
 
-        return rp;
-    }
+      return rp;
+  }
 
 }

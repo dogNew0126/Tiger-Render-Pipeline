@@ -9,8 +9,9 @@ Shader "Custom RP/gBuffer"
         _Roughness_global ("Roughness", Range(0, 1)) = 0.5
         [Toggle] _Use_Metal_Map ("Use Metal Map", Float) = 1
         _MetallicGlossMap ("Metallic Map", 2D) = "white" {}
+        //[Enum(Metallic Alpha,0,Albedo Alpha,1)] _SmoothnessTextureChannel ("Smoothness texture channel", Float) = 0
         [Space(25)]
-
+        
         _EmissionMap ("Emission Map", 2D) = "black" {}
         [Space(25)]
 
@@ -22,10 +23,45 @@ Shader "Custom RP/gBuffer"
     }
     SubShader
     {
-        Tags { "LightMode" = "gBuffer" }
+        Pass
+        {
+            Tags { "LightMode"="depthonly" }
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #include "UnityCG.cginc"
+
+            struct v2f
+            {
+                float4 vertex : SV_POSITION;
+                float2 depth : TEXCOORD0;
+            };
+
+            v2f vert (appdata_base v)
+            {
+                v2f o;
+                o.vertex = UnityObjectToClipPos(v.vertex);
+                o.depth = o.vertex.zw;
+                return o;
+            }
+
+            fixed4 frag (v2f i) : SV_Target
+            {
+                float d = i.depth.x / i.depth.y;
+            #if defined (UNITY_REVERSED_Z)
+                d = 1.0 - d;
+            #endif
+                fixed4 c = EncodeFloatRGBA(d);
+                //return float4(d,0,0,1);   // for debug
+                return c;
+            }
+            ENDCG 
+        }
 
         Pass
         {
+            Tags { "LightMode"="gbuffer" }
+
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -46,9 +82,9 @@ Shader "Custom RP/gBuffer"
                 float3 normal : NORMAL;
             };
 
-            sampler2D _MainTex;
             float4 _MainTex_ST;
 
+            sampler2D _MainTex;
             sampler2D _MetallicGlossMap;
             sampler2D _EmissionMap;
             sampler2D _OcclusionMap;
@@ -92,7 +128,7 @@ Shader "Custom RP/gBuffer"
                 //if(_Use_Normal_Map) normal = UnpackNormal(tex2D(_BumpMap, i.uv));
 
                 GT0 = color;
-                GT1 = float4(normal, 0);
+                GT1 = float4(normal*0.5+0.5, 0);
                 GT2 = float4(0, 0, roughness,metallic);
                 GT3 = float4(emission, ao);
             }
